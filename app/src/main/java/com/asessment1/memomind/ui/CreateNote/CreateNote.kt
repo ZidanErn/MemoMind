@@ -2,7 +2,6 @@ package com.asessment1.memomind.ui.CreateNote
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -19,7 +18,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
@@ -28,6 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,7 +47,7 @@ import com.asessment1.memomind.R
 import com.asessment1.memomind.ui.NotesList.NotesFab
 import com.asessment1.memomind.ui.NotesViewModel
 import com.asessment1.memomind.ui.theme.MemoMindTheme
-import kotlinx.coroutines.launch
+import com.asessment1.memomind.util.SettingsDataStore
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -63,6 +63,8 @@ fun CreateNoteScreen(
     val scaffoldState = rememberScaffoldState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val dataStore = SettingsDataStore(LocalContext.current)
+    val isDark by dataStore.themeFlow.collectAsState(false)
 
     val getImageRequest = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -73,7 +75,9 @@ fun CreateNoteScreen(
         currentPhotos.value = it.toString()
     }
 
-    MemoMindTheme {
+    MemoMindTheme(
+        darkTheme = isDark
+    ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.primary) {
             Scaffold(
                 scaffoldState = scaffoldState,
@@ -142,9 +146,14 @@ fun CreateNoteScreen(
                             modifier = Modifier
                                 .fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                cursorColor = Color.Black,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.Black
+                                focusedLabelColor = MaterialTheme.colors.onBackground,
+                                unfocusedLabelColor = MaterialTheme.colors.onBackground,
+//                                cursorColor = Color.Black,
+//                                focusedBorderColor = Color.Black,
+//                                unfocusedBorderColor = Color.Black
+                                cursorColor = MaterialTheme.colors.onBackground,
+                                focusedBorderColor = MaterialTheme.colors.onBackground,
+                                unfocusedBorderColor = MaterialTheme.colors.onBackground
                             ),
                             onValueChange = { value ->
                                 currentTitle.value = value
@@ -153,8 +162,7 @@ fun CreateNoteScreen(
                             },
                             label = {
                                 Text(
-                                    text = stringResource(id = R.string.title),
-                                    color = Color.Black
+                                    text = stringResource(id = R.string.title)
                                 )
                             }
                         )
@@ -173,9 +181,14 @@ fun CreateNoteScreen(
                                 .fillMaxHeight(0.5f)
                                 .fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                cursorColor = Color.Black,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.Black
+                                focusedLabelColor = MaterialTheme.colors.onBackground,
+                                unfocusedLabelColor = MaterialTheme.colors.onBackground,
+//                                cursorColor = Color.Black,
+//                                focusedBorderColor = Color.Black,
+//                                unfocusedBorderColor = Color.Black
+                                cursorColor = MaterialTheme.colors.onBackground,
+                                focusedBorderColor = MaterialTheme.colors.onBackground,
+                                unfocusedBorderColor = MaterialTheme.colors.onBackground
                             ),
                             onValueChange = { value ->
                                 currentNote.value = value
@@ -183,8 +196,7 @@ fun CreateNoteScreen(
                                     currentTitle.value.isNotEmpty() && currentNote.value.isNotEmpty()
                             },
                             label = { Text(
-                                text = stringResource(id = R.string.body),
-                                color = Color.Black) }
+                                text = stringResource(id = R.string.body)) }
                         )
                         if (currentNote.value.isEmpty()) {
                             Text(

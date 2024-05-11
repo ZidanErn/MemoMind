@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -29,6 +31,7 @@ import com.asessment1.memomind.R
 import com.asessment1.memomind.model.Note
 import com.asessment1.memomind.ui.NotesViewModel
 import com.asessment1.memomind.ui.theme.MemoMindTheme
+import com.asessment1.memomind.util.SettingsDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -51,14 +54,12 @@ fun ShareButton(note: Note) {
             }
             context.startActivity(Intent.createChooser(shareIntent, "Share note via"))
         },
-        backgroundColor = Color.White,
-        contentColor = Color.DarkGray,
+        backgroundColor = MaterialTheme.colors.primary,
         elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
     ) {
         Icon(Icons.Filled.Share, contentDescription = "Share")
     }
 }
-
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -67,6 +68,10 @@ fun NoteDetailScreen(noteId: Int, navController: NavController, viewModel: Notes
     val note = remember {
         mutableStateOf(noteDetailPlaceHolder)
     }
+    val dataStore = SettingsDataStore(LocalContext.current)
+    val isDark by dataStore.themeFlow.collectAsState(false)
+
+    var expanded by remember { mutableStateOf(false)}
 
     LaunchedEffect(true) {
         scope.launch(Dispatchers.IO) {
@@ -74,7 +79,13 @@ fun NoteDetailScreen(noteId: Int, navController: NavController, viewModel: Notes
         }
     }
 
-    MemoMindTheme {
+    val openDialog = remember { mutableStateOf(false) }
+    val deleteText = remember { mutableStateOf("") }
+    val notesToDelete = remember { mutableStateOf(listOf<Note>()) }
+
+    MemoMindTheme(
+        darkTheme = isDark
+    ) {
         // A surface container using the 'background' color from the theme
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
             Scaffold(
@@ -89,16 +100,27 @@ fun NoteDetailScreen(noteId: Int, navController: NavController, viewModel: Notes
                             Text(note.value.title ?: "", fontWeight = FontWeight.Bold)
                         },
                         actions = {
-                            IconButton(
-                                onClick = {
-                                    navController.navigate(Constants.noteEditNavigation(note.value.id ?: 0))
-                                },
+                            // Ubah menjadi dropdown menu
+                            IconButton(onClick = { expanded = !expanded }) {
+                                Icon(imageVector = Icons.Filled.Menu, contentDescription = "")
+                            }
+                            DropdownMenu (
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
                             ) {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(R.drawable.edit_note),
-                                    contentDescription = stringResource(R.string.edit_note),
-                                    tint = Color.DarkGray,
-                                )
+                                DropdownMenuItem(onClick = {
+                                    navController.navigate(Constants.noteEditNavigation(note.value.id ?: 0))
+                                }) {
+                                    Text(stringResource(id = R.string.edit_note))
+                                }
+                                DropdownMenuItem(onClick = {
+                                    // Tampilkan dialog penghapusan catatan
+                                    openDialog.value = true
+                                    deleteText.value = ""
+                                    notesToDelete.value = mutableListOf(note.value)
+                                }) {
+                                    Text(stringResource(id = R.string.delete_note))
+                                }
                             }
                         },
                         backgroundColor = MaterialTheme.colors.primary
@@ -141,5 +163,103 @@ fun NoteDetailScreen(noteId: Int, navController: NavController, viewModel: Notes
                 }
             }
         }
+    }
+
+    // Dialog penghapusan catatan
+    DeleteDialog(
+        navController = navController,
+        openDialog = openDialog,
+        text = deleteText,
+        action = {
+            notesToDelete.value.forEach {
+                viewModel.deleteNotes(it)
+            }
+        },
+        notesToDelete = notesToDelete
+
+    )
+}
+
+@Composable
+fun DeleteButton(
+    note: Note,
+    openDialog: MutableState<Boolean>,
+    deleteText: MutableState<String>,
+    navController: NavController,
+    notesToDelete: MutableState<List<Note>>,) {
+    FloatingActionButton(
+        onClick = {
+            // Tampilkan dialog penghapusan catatan
+            openDialog.value = true
+            deleteText.value = ""
+            notesToDelete.value = mutableListOf(note)
+        },
+        backgroundColor = MaterialTheme.colors.primary,
+        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 8.dp)
+    ) {
+        Icon(Icons.Filled.Delete, contentDescription = stringResource(id = R.string.delete_note))
+    }
+}
+
+@Composable
+fun DeleteDialog(
+    navController: NavController,
+    openDialog: MutableState<Boolean>,
+    text: MutableState<String>,
+    action: () -> Unit,
+    notesToDelete: MutableState<List<Note>>
+) {
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openDialog.value = false
+            },
+            title = {
+                Text(text = stringResource(id = R.string.delete_note_message))
+            },
+            text = {
+                Column() {
+                    Text(text.value)
+                }
+            },
+            buttons = {
+                Row(
+                    modifier = Modifier.padding(all = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Column() {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Black,
+                                contentColor = Color.White
+                            ),
+                            onClick = {
+                                action.invoke()
+                                openDialog.value = false
+                                notesToDelete.value = mutableListOf()
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Text(stringResource(id = R.string.yes))
+                        }
+                        Spacer(modifier = Modifier.padding(12.dp))
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Black,
+                                contentColor = Color.White
+                            ),
+                            onClick = {
+                                openDialog.value = false
+                                notesToDelete.value = mutableListOf()
+                            }
+                        ) {
+                            Text(stringResource(id = R.string.no))
+                        }
+                    }
+                }
+            }
+        )
     }
 }

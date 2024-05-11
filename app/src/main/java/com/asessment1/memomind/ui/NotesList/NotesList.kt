@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +43,10 @@ import com.asessment1.memomind.model.Note
 import com.asessment1.memomind.model.getDay
 import com.asessment1.memomind.ui.NotesViewModel
 import com.asessment1.memomind.ui.theme.MemoMindTheme
-import com.asessment1.memomind.ui.theme.noteBGBlue
-import com.asessment1.memomind.ui.theme.noteBGYellow
+import com.asessment1.memomind.util.SettingsDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -53,17 +58,33 @@ fun NotesList(navController: NavController, viewModel: NotesViewModel) {
     val notesToDelete = remember { mutableStateOf(listOf<Note>()) }
     val notes = viewModel.notes.observeAsState()
 
-    MemoMindTheme {
+    val dataStore = SettingsDataStore(LocalContext.current)
+    val isDark by dataStore.themeFlow.collectAsState(false)
+
+    MemoMindTheme(
+        darkTheme = isDark
+    ) {
         // A surface container using the 'background' color from the theme
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.primary) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.background) {
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = {
                             Text(text = stringResource(id = R.string.app_name))
                         },
-                        backgroundColor = Color.White,
+                        backgroundColor = MaterialTheme.colors.primary,
                         actions = {
+
+                            IconButton(onClick = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    dataStore.saveDarkMode(!isDark)
+                                }
+                            }) {
+                              Icon(
+                                  painter = painterResource(id = if(isDark) R.drawable.baseline_light_mode_24 else R.drawable.baseline_dark_mode_24),
+                                  contentDescription = "")
+                            }
+
                             IconButton(onClick = {
                                 // Navigate to About
                                 navController.navigate(Constants.NAVIGATION_ABOUT)
@@ -86,7 +107,7 @@ fun NotesList(navController: NavController, viewModel: NotesViewModel) {
 
             ) {
                 if (notes.value?.isNotEmpty() == true) {
-                    Column() {
+                    Column {
                         SearchBar(notesQuery)
                         NotesList(
                             notes = notes.value.orPlaceHolderList(),
@@ -129,16 +150,16 @@ fun SearchBar(query: MutableState<String>) {
             value = query.value,
             placeholder = { Text(stringResource(
                 id = R.string.search),
-                color = Color.Black) },
+                color = MaterialTheme.colors.onBackground) },
             maxLines = 1,
             onValueChange = { query.value = it },
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .fillMaxWidth(),
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                cursorColor = Color.Black,
-                focusedBorderColor = Color.Black,
-                unfocusedBorderColor = Color.Black
+//                cursorColor = Color.Black,
+//                focusedBorderColor = Color.Black,
+//                unfocusedBorderColor = Color.Black
             ),
             trailingIcon = {
                 AnimatedVisibility(
@@ -171,8 +192,7 @@ fun NotesList(
 ) {
     var previousHeader = ""
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        modifier = Modifier.background(MaterialTheme.colors.primary)
+        contentPadding = PaddingValues(12.dp)
     ) {
         val queriedNotes = if (query.value.isEmpty()) {
             notes
@@ -186,7 +206,7 @@ fun NotesList(
                         .padding(6.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(text = note.getDay(), color = Color.Black)
+                    Text(text = note.getDay())
                 }
                 Spacer(
                     modifier = Modifier
@@ -204,9 +224,6 @@ fun NotesList(
                 navController = navController,
                 notesToDelete = notesToDelete,
                 switchChecked = switchChecked,
-                noteBackGround = if (index % 2 == 0) {
-                    noteBGYellow
-                } else noteBGBlue
             )
             Spacer(
                 modifier = Modifier
@@ -225,7 +242,6 @@ fun NoteListItem(
     openDialog: MutableState<Boolean>,
     deleteText: MutableState<String>,
     navController: NavController,
-    noteBackGround: Color,
     notesToDelete: MutableState<List<Note>>,
     switchChecked: MutableState<Boolean> // State untuk menyimpan status switch
 ) {
@@ -234,7 +250,7 @@ fun NoteListItem(
         .clip(RoundedCornerShape(12.dp))) {
         Column(
             modifier = Modifier
-                .background(noteBackGround)
+                .background(MaterialTheme.colors.primary)
                 .fillMaxWidth()
                 .height(120.dp)
                 .combinedClickable(
@@ -243,13 +259,6 @@ fun NoteListItem(
                     onClick = {
                         if (note.id != 0) {
                             navController.navigate(Constants.noteDetailNavigation(note.id ?: 0))
-                        }
-                    },
-                    onLongClick = {
-                        if (note.id != 0) {
-                            openDialog.value = true
-                            deleteText.value = ""
-                            notesToDelete.value = mutableListOf(note)
                         }
                     }
                 )
@@ -275,60 +284,31 @@ fun NoteListItem(
                 ) {
                     Text(
                         text = note.title,
-                        color = if (switchChecked.value) Color.Blue else Color.DarkGray,
+                        color = MaterialTheme.colors.onPrimary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     )
                     Text(
                         text = note.note,
-                        color = if (switchChecked.value) Color.Blue else Color.DarkGray,
+                        color = MaterialTheme.colors.onPrimary,
                         maxLines = 3,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                     Text(
                         text = note.dateUpdated,
-                        color = if (switchChecked.value) Color.Blue else Color.DarkGray,
+                        color = MaterialTheme.colors.onPrimary,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
                 }
 
-                // Tombol Switch
                 Spacer(modifier = Modifier.width(8.dp))
-                Switch(
-                    checked = switchChecked.value,
-                    onCheckedChange = { isChecked ->
-                        switchChecked.value = isChecked
-                        // Lakukan sesuatu sesuai dengan status switch di sini
 
-                    },
-                    modifier = Modifier
-                        .alignByBaseline() // Menyelaraskan dengan baseline tombol hapus
-                        .heightIn(min = 48.dp) // Atur ketinggian agar sejajar dengan tombol hapus
-                )
-
-                // Tombol Hapus
-                IconButton(
-                    onClick = {
-                        openDialog.value = true
-                        deleteText.value = ""
-                        notesToDelete.value = mutableListOf(note)
-                    },
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color.Red)
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.note_delete),
-                        contentDescription = stringResource(R.string.delete_note),
-                        tint = Color.White
-                    )
                 }
             }
         }
     }
-}
+
+
 
 
 
@@ -342,8 +322,7 @@ fun NotesFab(contentDescription: String, icon: Int, action: () -> Unit) {
     ) {
         Icon(
             ImageVector.vectorResource(id = icon),
-            contentDescription = contentDescription,
-            tint = Color.Black
+            contentDescription = contentDescription
         )
 
     }

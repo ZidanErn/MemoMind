@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +27,7 @@ import com.asessment1.memomind.model.Note
 import com.asessment1.memomind.ui.NotesList.NotesFab
 import com.asessment1.memomind.ui.NotesViewModel
 import com.asessment1.memomind.ui.theme.MemoMindTheme
+import com.asessment1.memomind.util.SettingsDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -56,6 +56,8 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
             saveButtonState.value = true
         }
     }
+    val dataStore = SettingsDataStore(LocalContext.current)
+    val isDark by dataStore.themeFlow.collectAsState(false)
 
     LaunchedEffect(true) {
         scope.launch(Dispatchers.IO) {
@@ -68,7 +70,9 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
 
 
 
-    MemoMindTheme {
+    MemoMindTheme(
+        darkTheme = isDark
+    ) {
         // A surface container using the 'background' color from the theme
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colors.primary) {
             Scaffold(
@@ -99,8 +103,7 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
                             ) {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(R.drawable.save),
-                                    contentDescription = stringResource(R.string.save_note),
-                                    tint = if (saveButtonState.value) Color.DarkGray else Color.Gray
+                                    contentDescription = stringResource(R.string.save_note)
                                 )
                             }
                         },
@@ -143,9 +146,14 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
                             modifier = Modifier
                                 .fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                cursorColor = Color.Black,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.Black
+                                    focusedLabelColor = MaterialTheme.colors.onBackground,
+                                    unfocusedLabelColor = MaterialTheme.colors.onBackground,
+//                                cursorColor = Color.Black,
+//                                focusedBorderColor = Color.Black,
+//                                unfocusedBorderColor = Color.Black
+                                    cursorColor = MaterialTheme.colors.onBackground,
+                             focusedBorderColor = MaterialTheme.colors.onBackground,
+                                unfocusedBorderColor = MaterialTheme.colors.onBackground
                             ),
                             onValueChange = { value ->
                                 currentTitle.value = value
@@ -159,7 +167,6 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
                             },
                             label = { Text(
                                 text = stringResource(id = R.string.title),
-                                color = Color.Black
                                 ) }
                         )
                         Spacer(modifier = Modifier.padding(8.dp))
@@ -176,9 +183,14 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
                                 .fillMaxHeight(0.5f)
                                 .fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                cursorColor = Color.Black,
-                                focusedBorderColor = Color.Black,
-                                unfocusedBorderColor = Color.Black
+                                focusedLabelColor = MaterialTheme.colors.onBackground,
+                                unfocusedLabelColor = MaterialTheme.colors.onBackground,
+//                                cursorColor = Color.Black,
+//                                focusedBorderColor = Color.Black,
+//                                unfocusedBorderColor = Color.Black
+                                cursorColor = MaterialTheme.colors.onBackground,
+                                focusedBorderColor = MaterialTheme.colors.onBackground,
+                                unfocusedBorderColor = MaterialTheme.colors.onBackground
                             ),
                             onValueChange = { value ->
                                 currentNote.value = value
@@ -191,8 +203,7 @@ fun NoteEditScreen(noteId: Int, navController: NavController, viewModel: NotesVi
                                 }
                             },
                             label = { Text(
-                                text = stringResource(id = R.string.body),
-                                color = Color.Black
+                                text = stringResource(id = R.string.body)
                                 )
                             }
                         )

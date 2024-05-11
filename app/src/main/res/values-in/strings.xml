@@ -3,8 +3,8 @@
     <string name="app_name">MemoMind</string>
     <string name="create_note">Membuat Note</string>
     <string name="add_photo">Tambah Foto</string>
-    <string name="delete_note">Hapus Note?</string>
-    <string name="edit_note">Edit Note</string>
+    <string name="delete_note">Hapus</string>
+    <string name="edit_note">Edit</string>
     <string name="save_note">Save Note</string>
     <string name="clear_search">Hapus Pencarian</string>
     <string name="add_image">Tambah Gambar</string>

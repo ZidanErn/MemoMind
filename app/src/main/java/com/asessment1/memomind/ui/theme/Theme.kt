@@ -1,18 +1,31 @@
 package com.asessment1.memomind.ui.theme
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 @SuppressLint("ConflictingOnColor")
 private val DarkColorPalette = darkColors(
-    primary = Color.White,
-    background = Color.White,
-    onPrimary = Color.Black
+    primary = primaryDark,
+    onPrimary = onPrimaryDark,
+    primaryVariant = primaryContainerDark,
+    secondary = secondaryDark,
+    onSecondary = onSecondaryDark,
+    error = errorDark,
+    onError = onErrorDark,
+    background = backgroundDark,
+    onBackground = onBackgroundDark,
+    surface = surfaceDark,
+    onSurface = onSurfaceDark,
 )
 
 //#f6c2d9	(246,194,217)
@@ -27,9 +40,16 @@ val noteBGBlue = Color(0xFFa1c8e9)
 
 @SuppressLint("ConflictingOnColor")
 private val LightColorPalette = lightColors(
-    primary = Color.White,
-    background = Color.White,
-    onPrimary = Color.Black,
+    primary = primaryLight,
+    onPrimary = onPrimaryLight,
+    secondary = secondaryLight,
+    onSecondary = onSecondaryLight,
+    error = errorLight,
+    onError = onErrorLight,
+    background = backgroundLight,
+    onBackground = onBackgroundLight,
+    surface = surfaceLight,
+    onSurface = onSurfaceLight,
 )
 
 @Composable
@@ -38,6 +58,15 @@ fun MemoMindTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composab
         DarkColorPalette
     } else {
         LightColorPalette
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colors.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+        }
     }
 
     MaterialTheme(

@@ -54,6 +54,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation "androidx.activity:activity-compose:1.6.0-alpha05"
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // used for status bar change
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.10.0"

@@ -1,4 +1,4 @@
-# MemoMind
+# MemoMind_2
 
 - Muhammad Zidan Ernandiaz
 
