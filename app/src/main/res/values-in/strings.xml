@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MemoMind</string>
+    <string name="create_note">Membuat Note</string>
+    <string name="add_photo">Tambah Foto</string>
+    <string name="delete_note">Hapus Note?</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="save_note">Save Note</string>
+    <string name="clear_search">Hapus Pencarian</string>
+    <string name="add_image">Tambah Gambar</string>
+    <string name="back">Kembali</string>
+    <string name="delete">Hapus</string>
+    <string name="settings">Pengaturan</string>
+    <string name="about">Tentang Aplikasi</string>
+    <string name="language">Bahasa</string>
+    <string name="delete_note_message">Apakah anda yakin ingin menghapus nota ini?</string>
+    <string name="yes">Iya</string>
+    <string name="no">Tidak</string>
+    <string name="no_notes_found">Tidak ada nota yang ditemukan.</string>
+    <string name="app_logo">Logo Aplikasi</string>
+    <string name="title">Judul</string>
+    <string name="body">Catatan</string>
+    <string name="share">Bagikan</string>
+    <string name="input_invalid">Tidak ada input.</string>
+    <string name="search">Cari...</string>
+</resources>
